@@ -68,33 +68,12 @@ C4Container
     SystemDb_Ext(oracle_db, "Oracle Database", "Banco de dados relacional")
 
     Container(skillsync_api, "SkillSync API", ".NET 8, ASP.NET Core", "API RESTful principal")
-    ContainerDb(oracle_db_container, "Oracle Database", "Oracle", "Armazena usuários, projetos, perfis, dicas")
-
-    Container_Opt(auth_controller, "AuthController", "C#", "Autenticação JWT")
-    Container_Opt(projetos_controller, "ProjetosController", "C#", "CRUD de projetos")
-    Container_Opt(perfis_controller, "PerfisController", "C#", "CRUD de perfis")
-    Container_Opt(dicas_controller, "DicasController", "C#", "Listagem de dicas")
-    Container_Opt(matches_controller, "MatchesController", "C#", "Geração de matches")
-    
-    Container_Opt(ml_service, "MLService", "C#", "Classificação ML.NET")
-    Container_Opt(ai_service, "AIService", "C#", "Integração com API de IA")
-    Container_Opt(auth_service, "AuthService", "C#", "Autenticação e registro")
+    ContainerDb(oracle_db_container, "Oracle Database", "Oracle", "Armazena dados")
 
     Rel(user, mobile_app, "Usa")
     Rel(mobile_app, skillsync_api, "HTTPS")
-    Rel(skillsync_api, auth_controller, "Usa")
-    Rel(skillsync_api, projetos_controller, "Usa")
-    Rel(skillsync_api, perfis_controller, "Usa")
-    Rel(skillsync_api, dicas_controller, "Usa")
-    Rel(skillsync_api, matches_controller, "Usa")
-    Rel(projetos_controller, ml_service, "Usa")
-    Rel(matches_controller, ai_service, "Usa")
-    Rel(auth_controller, auth_service, "Usa")
     Rel(skillsync_api, ai_api, "HTTPS")
     Rel(skillsync_api, oracle_db, "Entity Framework Core")
-    Rel(projetos_controller, oracle_db_container, "Lê/Escreve")
-    Rel(perfis_controller, oracle_db_container, "Lê/Escreve")
-    Rel(dicas_controller, oracle_db_container, "Lê")
 ```
 
 ## 📋 Requisitos
@@ -263,58 +242,23 @@ curl -X POST "http://localhost:5004/api/v1/projetos/1/gerar-matches" \
 
 ## 🚀 Deploy
 
-### Deploy no Render (Gratuito)
+A API está configurada para deploy em plataformas de hospedagem cloud usando Docker. O projeto inclui um `Dockerfile` otimizado para produção.
 
-Render oferece um tier gratuito para aplicações .NET. Siga os passos abaixo:
+### Plataformas Suportadas
 
-#### 1. Preparar o Projeto
+- **Render** - Tier gratuito disponível
+- **Railway** - $5 de créditos mensais gratuitos
+- **Fly.io** - Tier gratuito com recursos limitados
+- **Azure App Service** - Requer plano pago
+- **AWS** - Requer configuração de infraestrutura
 
-Certifique-se de que o projeto possui um `Dockerfile` na raiz do diretório `Dotnet`:
+### Variáveis de Ambiente Necessárias
 
-```dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["SkillSync.API/SkillSync.API.csproj", "SkillSync.API/"]
-RUN dotnet restore "SkillSync.API/SkillSync.API.csproj"
-COPY . .
-WORKDIR "/src/SkillSync.API"
-RUN dotnet build "SkillSync.API.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "SkillSync.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SkillSync.API.dll"]
-```
-
-#### 2. Criar Web Service no Render
-
-1. Acesse [render.com](https://render.com) e crie uma conta
-2. Clique em "New +" e selecione "Web Service"
-3. Conecte seu repositório GitHub
-4. Configure o serviço:
-   - **Name**: `skillsync-api`
-   - **Environment**: `Docker`
-   - **Region**: Escolha a região mais próxima
-   - **Branch**: `main`
-   - **Root Directory**: `Dotnet`
-   - **Dockerfile Path**: `Dockerfile`
-   - **Docker Context**: `Dotnet`
-
-#### 3. Configurar Variáveis de Ambiente
-
-No painel do Render, adicione as seguintes variáveis de ambiente:
+Configure as seguintes variáveis de ambiente na plataforma de deploy:
 
 ```
-ConnectionStrings__OracleConnection=User Id=SEU_USUARIO;Password=SUA_SENHA;Data Source=oracle.fiap.com.br:1521/ORCL;
-Jwt__Key=SUA_CHAVE_SECRETA_MINIMO_32_CARACTERES
+ConnectionStrings__OracleConnection=User Id=RM555962;Password=191105;Data Source=oracle.fiap.com.br:1521/ORCL;
+Jwt__Key=SkillSyncAcademicProject2025SecretKeyForJWTTokenGenerationMinimum32Characters
 Jwt__Issuer=SkillSyncAPI
 Jwt__Audience=SkillSyncUsers
 Jwt__ExpirationInMinutes=60
@@ -324,95 +268,10 @@ ASPNETCORE_ENVIRONMENT=Production
 ASPNETCORE_URLS=http://+:8080
 ```
 
-#### 4. Deploy
+### Status do Deploy
 
-Clique em "Create Web Service" e aguarde o deploy. A API estará disponível em `https://skillsync-api.onrender.com`.
-
-### Deploy no Railway (Gratuito)
-
-Railway oferece um tier gratuito com $5 de créditos mensais. Siga os passos abaixo:
-
-#### 1. Preparar o Projeto
-
-Certifique-se de que o projeto possui um `Dockerfile` (mesmo do Render).
-
-#### 2. Criar Projeto no Railway
-
-1. Acesse [railway.app](https://railway.app) e crie uma conta
-2. Clique em "New Project" e selecione "Deploy from GitHub repo"
-3. Conecte seu repositório GitHub
-4. Selecione o repositório `SkillSync-API`
-
-#### 3. Configurar o Serviço
-
-1. Railway detectará automaticamente o `Dockerfile`
-2. Configure o **Root Directory** como `Dotnet`
-3. Railway iniciará o build automaticamente
-
-#### 4. Configurar Variáveis de Ambiente
-
-No painel do Railway, adicione as seguintes variáveis de ambiente:
-
-```
-ConnectionStrings__OracleConnection=User Id=SEU_USUARIO;Password=SUA_SENHA;Data Source=oracle.fiap.com.br:1521/ORCL;
-Jwt__Key=SUA_CHAVE_SECRETA_MINIMO_32_CARACTERES
-Jwt__Issuer=SkillSyncAPI
-Jwt__Audience=SkillSyncUsers
-Jwt__ExpirationInMinutes=60
-AI__ApiUrl=https://skillsync-ai-api.onrender.com/gerar-match
-AI__TimeoutInSeconds=30
-ASPNETCORE_ENVIRONMENT=Production
-PORT=8080
-```
-
-#### 5. Deploy
-
-Railway fará o deploy automaticamente. A API estará disponível em `https://skillsync-api.railway.app`.
-
-### Deploy no Fly.io (Gratuito)
-
-Fly.io oferece um tier gratuito com recursos limitados. Siga os passos abaixo:
-
-#### 1. Instalar Fly CLI
-
-```bash
-curl -L https://fly.io/install.sh | sh
-```
-
-#### 2. Criar App no Fly.io
-
-```bash
-cd Dotnet
-fly launch
-```
-
-#### 3. Configurar Variáveis de Ambiente
-
-```bash
-fly secrets set ConnectionStrings__OracleConnection="User Id=SEU_USUARIO;Password=SUA_SENHA;Data Source=oracle.fiap.com.br:1521/ORCL;"
-fly secrets set Jwt__Key="SUA_CHAVE_SECRETA_MINIMO_32_CARACTERES"
-fly secrets set Jwt__Issuer="SkillSyncAPI"
-fly secrets set Jwt__Audience="SkillSyncUsers"
-fly secrets set Jwt__ExpirationInMinutes="60"
-fly secrets set AI__ApiUrl="https://skillsync-ai-api.onrender.com/gerar-match"
-fly secrets set AI__TimeoutInSeconds="30"
-```
-
-#### 4. Deploy
-
-```bash
-fly deploy
-```
-
-A API estará disponível em `https://skillsync-api.fly.dev`.
-
-### Notas sobre Deploy
-
-- **Render**: Tier gratuito com limitações de recursos. A aplicação pode "adormecer" após 15 minutos de inatividade.
-- **Railway**: Tier gratuito com $5 de créditos mensais. Ideal para projetos pequenos.
-- **Fly.io**: Tier gratuito com recursos limitados. Ideal para projetos experimentais.
-
-Para produção, considere usar um plano pago ou configurar um servidor próprio.
+A API está atualmente deployada em:
+- **Render**: https://skillsync-api-t412.onrender.com
 
 ## 🧪 Testes
 
