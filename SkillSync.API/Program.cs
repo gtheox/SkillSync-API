@@ -212,7 +212,11 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Habilitar Swagger em desenvolvimento ou se a variável de ambiente EnableSwagger estiver definida
+var enableSwagger = app.Environment.IsDevelopment() || 
+                    builder.Configuration.GetValue<bool>("EnableSwagger", false);
+
+if (enableSwagger)
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>

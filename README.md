@@ -208,7 +208,12 @@ A API suporta versionamento através do prefixo `/api/v{version}/`:
 
 ### Documentação
 
-A documentação interativa (Swagger UI) está disponível apenas em ambiente de desenvolvimento em `http://localhost:5004`.
+A documentação interativa (Swagger UI) está disponível em:
+
+- **Desenvolvimento**: `http://localhost:5004`
+- **Produção**: `https://skillsync-api-t4l2.onrender.com`
+
+O Swagger está habilitado por padrão. Para desabilitá-lo em produção, defina a variável de ambiente `EnableSwagger=false` no Render Dashboard.
 
 ### Exemplo de Uso
 
