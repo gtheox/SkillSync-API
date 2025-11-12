@@ -9,7 +9,7 @@ API RESTful desenvolvida em .NET 8 para a plataforma SkillSync, focada em matchm
 - [Requisitos](#-requisitos)
 - [Configuração](#-configuração)
 - [Uso da API](#-uso-da-api)
-- [Deploy](#-deploy)
+- [API em Produção](#-api-em-produção)
 - [Testes](#-testes)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 
@@ -108,7 +108,7 @@ dotnet run --project SkillSync.API
 ```
 
 A API estará disponível em:
-- **Swagger UI**: `http://localhost:5004`
+- **Swagger UI**: `http://localhost:5004` (apenas em desenvolvimento)
 - **API**: `http://localhost:5004/api/v1`
 - **Health Check**: `http://localhost:5004/health`
 
@@ -166,9 +166,16 @@ Content-Type: application/json
 
 ### Endpoints Principais
 
+Todos os endpoints estão disponíveis em: `https://skillsync-api-t4l2.onrender.com/api/v1`
+
+#### Autenticação
+
+- `POST /api/v1/auth/register` - Registrar novo usuário
+- `POST /api/v1/auth/login` - Login e obtenção de token JWT
+
 #### Projetos
 
-- `GET /api/v1/projetos` - Listar projetos (com paginação)
+- `GET /api/v1/projetos` - Listar projetos (com paginação e HATEOAS)
 - `GET /api/v1/projetos/{id}` - Buscar projeto por ID
 - `POST /api/v1/projetos` - Criar novo projeto (requer autenticação)
 - `PUT /api/v1/projetos/{id}` - Atualizar projeto (requer autenticação)
@@ -199,15 +206,15 @@ A API suporta versionamento através do prefixo `/api/v{version}/`:
 - **v1.0**: Versão inicial da API
 - **v2.0**: Versão com filtros avançados e ML.NET melhorado
 
-### Swagger UI
+### Documentação
 
-Acesse `http://localhost:5004` para visualizar a documentação interativa da API. Use o botão "Authorize" para incluir o token JWT nas requisições.
+A documentação interativa (Swagger UI) está disponível apenas em ambiente de desenvolvimento em `http://localhost:5004`.
 
-### Exemplo de Uso Completo
+### Exemplo de Uso
 
 ```bash
 # 1. Registrar usuário
-curl -X POST "http://localhost:5004/api/v1/auth/register" \
+curl -X POST "https://skillsync-api-t4l2.onrender.com/api/v1/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "nome": "João Silva",
@@ -217,7 +224,7 @@ curl -X POST "http://localhost:5004/api/v1/auth/register" \
   }'
 
 # 2. Login
-TOKEN=$(curl -X POST "http://localhost:5004/api/v1/auth/login" \
+TOKEN=$(curl -X POST "https://skillsync-api-t4l2.onrender.com/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "joao@example.com",
@@ -225,7 +232,7 @@ TOKEN=$(curl -X POST "http://localhost:5004/api/v1/auth/login" \
   }' | jq -r '.token')
 
 # 3. Criar projeto
-curl -X POST "http://localhost:5004/api/v1/projetos" \
+curl -X POST "https://skillsync-api-t4l2.onrender.com/api/v1/projetos" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -236,42 +243,34 @@ curl -X POST "http://localhost:5004/api/v1/projetos" \
   }'
 
 # 4. Gerar matches
-curl -X POST "http://localhost:5004/api/v1/projetos/1/gerar-matches" \
+curl -X POST "https://skillsync-api-t4l2.onrender.com/api/v1/projetos/1/gerar-matches" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 🚀 Deploy
+## 🌐 API em Produção
 
-A API está configurada para deploy em plataformas de hospedagem cloud usando Docker. O projeto inclui um `Dockerfile` otimizado para produção.
+A API está disponível em produção:
 
-### Plataformas Suportadas
+**URL Base**: https://skillsync-api-t4l2.onrender.com
 
-- **Render** - Tier gratuito disponível
-- **Railway** - $5 de créditos mensais gratuitos
-- **Fly.io** - Tier gratuito com recursos limitados
-- **Azure App Service** - Requer plano pago
-- **AWS** - Requer configuração de infraestrutura
+### Endpoints Disponíveis
 
-### Variáveis de Ambiente Necessárias
-
-Configure as seguintes variáveis de ambiente na plataforma de deploy:
-
-```
-ConnectionStrings__OracleConnection=User Id=RM555962;Password=191105;Data Source=oracle.fiap.com.br:1521/ORCL;
-Jwt__Key=SkillSyncAcademicProject2025SecretKeyForJWTTokenGenerationMinimum32Characters
-Jwt__Issuer=SkillSyncAPI
-Jwt__Audience=SkillSyncUsers
-Jwt__ExpirationInMinutes=60
-AI__ApiUrl=https://skillsync-ai-api.onrender.com/gerar-match
-AI__TimeoutInSeconds=30
-ASPNETCORE_ENVIRONMENT=Production
-ASPNETCORE_URLS=http://+:8080
-```
-
-### Status do Deploy
-
-A API está atualmente deployada em:
-- **Render**: https://skillsync-api-t412.onrender.com
+- `GET /health` - Health check da API e banco de dados
+- `POST /api/v1/auth/register` - Registrar novo usuário
+- `POST /api/v1/auth/login` - Login e obtenção de token JWT
+- `GET /api/v1/projetos` - Listar projetos (com paginação)
+- `GET /api/v1/projetos/{id}` - Buscar projeto por ID
+- `POST /api/v1/projetos` - Criar projeto (requer autenticação)
+- `PUT /api/v1/projetos/{id}` - Atualizar projeto (requer autenticação)
+- `DELETE /api/v1/projetos/{id}` - Deletar projeto (requer autenticação)
+- `POST /api/v1/projetos/{id}/gerar-matches` - Gerar matches usando IA (requer autenticação)
+- `GET /api/v1/perfis` - Listar perfis
+- `GET /api/v1/perfis/{id}` - Buscar perfil por ID
+- `POST /api/v1/perfis` - Criar perfil (requer autenticação)
+- `PUT /api/v1/perfis/{id}` - Atualizar perfil (requer autenticação)
+- `DELETE /api/v1/perfis/{id}` - Deletar perfil (requer autenticação)
+- `GET /api/v1/dicas` - Listar dicas geradas pela IA
+- `GET /api/v1/dicas/{id}` - Buscar dica por ID
 
 ## 🧪 Testes
 

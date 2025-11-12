@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillSync.API.Data;
@@ -8,7 +7,6 @@ namespace SkillSync.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/dicas")]
-[Authorize]
 [Produces("application/json")]
 [ApiVersion("1.0")]
 public class DicasController : ControllerBase

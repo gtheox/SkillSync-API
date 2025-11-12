@@ -122,6 +122,10 @@ public class PerfisController : ControllerBase
             _context.TGsPerfisFreelancers.Add(perfil);
             await _context.SaveChangesAsync();
 
+            // Recarregar a entidade para obter o ID gerado pelo Oracle
+            await _context.Entry(perfil).ReloadAsync();
+            var idPerfilGerado = perfil.IdPerfil;
+
             // Adicionar habilidades usando stored procedure
             if (dto.Habilidades != null && dto.Habilidades.Any())
             {
@@ -149,7 +153,7 @@ public class PerfisController : ControllerBase
                 {
                     await _context.Database.ExecuteSqlRawAsync(
                         "BEGIN PKG_GERENCIAMENTO.SP_ADICIONAR_HABILIDADE_PERFIL(:p_idPerfil, :p_idHabilidade); END;",
-                        new Oracle.ManagedDataAccess.Client.OracleParameter("p_idPerfil", perfil.IdPerfil),
+                        new Oracle.ManagedDataAccess.Client.OracleParameter("p_idPerfil", idPerfilGerado),
                         new Oracle.ManagedDataAccess.Client.OracleParameter("p_idHabilidade", habilidadeId));
                 }
             }
@@ -159,9 +163,9 @@ public class PerfisController : ControllerBase
                 .Include(p => p.IdUsuarioNavigation)
                 .Include(p => p.TGsPerfilHabilidades)
                     .ThenInclude(ph => ph.IdHabilidadeNavigation)
-                .FirstOrDefaultAsync(p => p.IdPerfil == perfil.IdPerfil);
+                .FirstOrDefaultAsync(p => p.IdPerfil == idPerfilGerado);
 
-            return CreatedAtAction(nameof(GetPerfil), new { id = perfil.IdPerfil }, 
+            return CreatedAtAction(nameof(GetPerfil), new { id = idPerfilGerado }, 
                 MapToDto(perfilCompleto!, Request));
         }
         catch (Exception ex)

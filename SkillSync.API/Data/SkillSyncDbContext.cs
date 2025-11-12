@@ -81,9 +81,11 @@ public partial class SkillSyncDbContext : DbContext
 
             entity.HasIndex(e => e.IdUsuario, "UK_GS_PERFIS_USUARIO").IsUnique();
 
+            // Configurar ID_PERFIL para usar a sequence do Oracle
             entity.Property(e => e.IdPerfil)
                 .HasColumnType("NUMBER(10)")
-                .HasColumnName("ID_PERFIL");
+                .HasColumnName("ID_PERFIL")
+                .ValueGeneratedOnAdd(); // Oracle gera o ID automaticamente via sequence
 
             entity.Property(e => e.IdUsuario)
                 .HasColumnType("NUMBER(10)")
