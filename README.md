@@ -112,35 +112,13 @@ git clone https://github.com/gtheox/SkillSync-API.git
 cd SkillSync-API/Dotnet
 ```
 
-### 2. Configurar Variáveis de Ambiente
-
-Edite o arquivo `appsettings.json` com as configurações necessárias:
-
-```json
-{
-  "ConnectionStrings": {
-    "OracleConnection": "User Id=SEU_USUARIO;Password=SUA_SENHA;Data Source=oracle.fiap.com.br:1521/ORCL;"
-  },
-  "Jwt": {
-    "Key": "SUA_CHAVE_SECRETA_MINIMO_32_CARACTERES",
-    "Issuer": "SkillSyncAPI",
-    "Audience": "SkillSyncUsers",
-    "ExpirationInMinutes": 60
-  },
-  "AI": {
-    "ApiUrl": "https://skillsync-ai-api.onrender.com/gerar-match",
-    "TimeoutInSeconds": 30
-  }
-}
-```
-
-### 3. Restaurar Dependências
+### 2. Restaurar Dependências
 
 ```bash
 dotnet restore
 ```
 
-### 4. Executar a API
+### 3. Executar a API
 
 ```bash
 # Usando script helper

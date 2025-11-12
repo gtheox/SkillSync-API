@@ -45,7 +45,7 @@ bld/
 *.userosscache
 *.sln.docstates
 
-# Scripts helpers (opcional - descomente se não quiser commitar)
+# Scripts helpers (manter no repositório - são úteis)
 # start-api.sh
 # stop-api.sh
 
@@ -61,7 +61,6 @@ ML/*.model
 ## Environment variables
 .env
 .env.local
-appsettings.Development.json
 appsettings.Production.json
 
 ## NuGet Packages
