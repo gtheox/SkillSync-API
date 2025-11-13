@@ -36,13 +36,22 @@ public class PerfisController : ControllerBase
     {
         try
         {
+            // Filtrar apenas perfis com ID válido (> 0)
+            // Isso garante que nunca retornemos perfis com ID 0 ou inválidos
             var perfis = await _context.TGsPerfisFreelancers
+                .Where(p => p.IdPerfil > 0) // Filtrar apenas IDs válidos
                 .Include(p => p.IdUsuarioNavigation)
                 .Include(p => p.TGsPerfilHabilidades)
                     .ThenInclude(ph => ph.IdHabilidadeNavigation)
                 .ToListAsync();
 
-            var perfisDto = perfis.Select(p => MapToDto(p, Request)).ToList();
+            // Filtrar novamente para garantir (defesa em profundidade)
+            var perfisValidos = perfis.Where(p => p.IdPerfil > 0).ToList();
+
+            var perfisDto = perfisValidos
+                .Select(p => MapToDto(p, Request))
+                .Where(dto => dto.IdPerfil > 0) // Garantir que o DTO também tenha ID válido
+                .ToList();
 
             return Ok(perfisDto);
         }
@@ -59,17 +68,25 @@ public class PerfisController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(PerfilResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PerfilResponseDto>> GetPerfil(decimal id)
     {
         try
         {
+            // Validar que o ID é válido (> 0)
+            if (id <= 0)
+            {
+                return BadRequest(new { message = "ID de perfil inválido. O ID deve ser maior que zero." });
+            }
+
             var perfil = await _context.TGsPerfisFreelancers
+                .Where(p => p.IdPerfil == id && p.IdPerfil > 0) // Garantir que o ID é válido
                 .Include(p => p.IdUsuarioNavigation)
                 .Include(p => p.TGsPerfilHabilidades)
                     .ThenInclude(ph => ph.IdHabilidadeNavigation)
-                .FirstOrDefaultAsync(p => p.IdPerfil == id);
+                .FirstOrDefaultAsync();
 
-            if (perfil == null)
+            if (perfil == null || perfil.IdPerfil <= 0)
             {
                 return NotFound(new { message = "Perfil não encontrado" });
             }
@@ -181,14 +198,22 @@ public class PerfisController : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(PerfilResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PerfilResponseDto>> UpdatePerfil(decimal id, [FromBody] PerfilCreateDto dto)
     {
         try
         {
-            var perfil = await _context.TGsPerfisFreelancers
-                .FirstOrDefaultAsync(p => p.IdPerfil == id);
+            // Validar que o ID é válido (> 0)
+            if (id <= 0)
+            {
+                return BadRequest(new { message = "ID de perfil inválido. O ID deve ser maior que zero." });
+            }
 
-            if (perfil == null)
+            var perfil = await _context.TGsPerfisFreelancers
+                .Where(p => p.IdPerfil == id && p.IdPerfil > 0) // Garantir que o ID é válido
+                .FirstOrDefaultAsync();
+
+            if (perfil == null || perfil.IdPerfil <= 0)
             {
                 return NotFound(new { message = "Perfil não encontrado" });
             }
@@ -209,10 +234,11 @@ public class PerfisController : ControllerBase
             await _context.SaveChangesAsync();
 
             var perfilCompleto = await _context.TGsPerfisFreelancers
+                .Where(p => p.IdPerfil == id && p.IdPerfil > 0) // Garantir que o ID é válido
                 .Include(p => p.IdUsuarioNavigation)
                 .Include(p => p.TGsPerfilHabilidades)
                     .ThenInclude(ph => ph.IdHabilidadeNavigation)
-                .FirstOrDefaultAsync(p => p.IdPerfil == id);
+                .FirstOrDefaultAsync();
 
             return Ok(MapToDto(perfilCompleto!, Request));
         }
@@ -229,14 +255,22 @@ public class PerfisController : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> DeletePerfil(decimal id)
     {
         try
         {
-            var perfil = await _context.TGsPerfisFreelancers
-                .FirstOrDefaultAsync(p => p.IdPerfil == id);
+            // Validar que o ID é válido (> 0)
+            if (id <= 0)
+            {
+                return BadRequest(new { message = "ID de perfil inválido. O ID deve ser maior que zero." });
+            }
 
-            if (perfil == null)
+            var perfil = await _context.TGsPerfisFreelancers
+                .Where(p => p.IdPerfil == id && p.IdPerfil > 0) // Garantir que o ID é válido
+                .FirstOrDefaultAsync();
+
+            if (perfil == null || perfil.IdPerfil <= 0)
             {
                 return NotFound(new { message = "Perfil não encontrado" });
             }
@@ -291,6 +325,12 @@ public class PerfisController : ControllerBase
 
     private static PerfilResponseDto MapToDto(TGsPerfisFreelancer perfil, HttpRequest request)
     {
+        // Validar que o perfil tem ID válido antes de mapear
+        if (perfil == null || perfil.IdPerfil <= 0)
+        {
+            throw new ArgumentException("Perfil inválido: ID deve ser maior que zero", nameof(perfil));
+        }
+
         var baseUrl = $"{request.Scheme}://{request.Host}";
         var dto = new PerfilResponseDto
         {
@@ -301,7 +341,8 @@ public class PerfisController : ControllerBase
             ValorHora = perfil.VlHora,
             DataUltimaAtualizacao = perfil.DtUltimaAtualizacao,
             Habilidades = perfil.TGsPerfilHabilidades
-                .Select(ph => ph.IdHabilidadeNavigation.NmHabilidade)
+                .Select(ph => ph.IdHabilidadeNavigation?.NmHabilidade ?? string.Empty)
+                .Where(h => !string.IsNullOrEmpty(h))
                 .ToList(),
             Links = new Dictionary<string, string>
             {
@@ -310,6 +351,13 @@ public class PerfisController : ControllerBase
                 { "delete", $"{baseUrl}/api/v1/perfis/{perfil.IdPerfil}" }
             }
         };
+
+        // Validação final antes de retornar
+        if (dto.IdPerfil <= 0)
+        {
+            throw new InvalidOperationException($"DTO de perfil inválido: ID {dto.IdPerfil} não é válido");
+        }
+
         return dto;
     }
 }
