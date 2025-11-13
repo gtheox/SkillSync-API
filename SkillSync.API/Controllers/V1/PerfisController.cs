@@ -241,9 +241,10 @@ public class PerfisController : ControllerBase
                 return NotFound(new { message = "Perfil não encontrado" });
             }
 
-            // Verificar se o usuário é o dono do perfil
+            // Verificar permissões: admin pode deletar qualquer perfil, freelancer apenas o seu
             var userId = GetUserId();
-            if (perfil.IdUsuario != userId)
+            var isAdmin = IsAdmin();
+            if (!isAdmin && perfil.IdUsuario != userId)
             {
                 return Forbid();
             }

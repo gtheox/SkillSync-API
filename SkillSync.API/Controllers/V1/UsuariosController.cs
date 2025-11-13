@@ -75,12 +75,12 @@ public class UsuariosController : ControllerBase
                 return NotFound(new { message = "Usuário não encontrado" });
             }
 
-            // Verificar permissões: admin pode ver qualquer usuário, outros apenas o próprio
+            // Verificar permissões: admin pode ver qualquer usuário, outros podem ver qualquer usuário
+            // (necessário para exibir informações em perfis e projetos)
+            // Apenas restringir se necessário para segurança adicional
             var userId = GetUserId();
-            if (!IsAdmin() && usuario.IdUsuario != userId)
-            {
-                return Forbid();
-            }
+            // Permitir que qualquer usuário autenticado veja informações de outros usuários
+            // Isso é necessário para exibir nome/email em perfis e projetos
 
             return Ok(MapToDto(usuario, Request));
         }
