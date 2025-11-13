@@ -212,9 +212,10 @@ public class ProjetosController : ControllerBase
                 return NotFound(new { message = "Projeto não encontrado" });
             }
 
-            // Verificar se o usuário é o dono do projeto
+            // Verificar permissões: admin pode editar qualquer projeto, contratante apenas o seu
             var userId = GetUserId();
-            if (projeto.IdUsuarioContratante != userId)
+            var isAdmin = IsAdmin();
+            if (!isAdmin && projeto.IdUsuarioContratante != userId)
             {
                 return Forbid();
             }
@@ -260,9 +261,10 @@ public class ProjetosController : ControllerBase
                 return NotFound(new { message = "Projeto não encontrado" });
             }
 
-            // Verificar se o usuário é o dono do projeto
+            // Verificar permissões: admin pode editar qualquer projeto, contratante apenas o seu
             var userId = GetUserId();
-            if (projeto.IdUsuarioContratante != userId)
+            var isAdmin = IsAdmin();
+            if (!isAdmin && projeto.IdUsuarioContratante != userId)
             {
                 return Forbid();
             }
@@ -299,6 +301,12 @@ public class ProjetosController : ControllerBase
             return userId;
         }
         throw new UnauthorizedAccessException("Usuário não autenticado");
+    }
+
+    private bool IsAdmin()
+    {
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        return roleClaim == "ADMIN";
     }
 
     private static ProjetoResponseDto MapToDto(TGsProjetosContratante projeto, HttpRequest request)

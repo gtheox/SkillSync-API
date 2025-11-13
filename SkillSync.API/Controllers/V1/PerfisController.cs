@@ -193,9 +193,10 @@ public class PerfisController : ControllerBase
                 return NotFound(new { message = "Perfil não encontrado" });
             }
 
-            // Verificar se o usuário é o dono do perfil
+            // Verificar permissões: admin pode editar qualquer perfil, freelancer apenas o seu
             var userId = GetUserId();
-            if (perfil.IdUsuario != userId)
+            var isAdmin = IsAdmin();
+            if (!isAdmin && perfil.IdUsuario != userId)
             {
                 return Forbid();
             }
@@ -279,6 +280,12 @@ public class PerfisController : ControllerBase
             return userId;
         }
         throw new UnauthorizedAccessException("Usuário não autenticado");
+    }
+
+    private bool IsAdmin()
+    {
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        return roleClaim == "ADMIN";
     }
 
     private static PerfilResponseDto MapToDto(TGsPerfisFreelancer perfil, HttpRequest request)
