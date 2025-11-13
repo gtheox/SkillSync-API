@@ -228,6 +228,33 @@ public class ProjetosController : ControllerBase
 
             await _context.SaveChangesAsync();
 
+            // Atualizar habilidades requisitadas se fornecidas
+            if (dto.HabilidadesRequisitadas != null)
+            {
+                // Deletar habilidades existentes
+                var requisitosExistentes = await _context.TGsProjetoRequisitos
+                    .Where(pr => pr.IdProjeto == id)
+                    .ToListAsync();
+                
+                if (requisitosExistentes.Any())
+                {
+                    _context.TGsProjetoRequisitos.RemoveRange(requisitosExistentes);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Adicionar novas habilidades
+                if (dto.HabilidadesRequisitadas.Any())
+                {
+                    foreach (var habilidadeId in dto.HabilidadesRequisitadas)
+                    {
+                        await _context.Database.ExecuteSqlRawAsync(
+                            "BEGIN PKG_GERENCIAMENTO.SP_ADICIONAR_REQUISITO_PROJETO(:p_idProjeto, :p_idHabilidade); END;",
+                            new Oracle.ManagedDataAccess.Client.OracleParameter("p_idProjeto", id),
+                            new Oracle.ManagedDataAccess.Client.OracleParameter("p_idHabilidade", habilidadeId));
+                    }
+                }
+            }
+
             var projetoCompleto = await _context.TGsProjetosContratantes
                 .Include(p => p.IdCategoriaNavigation)
                 .Include(p => p.TGsProjetoRequisitos)

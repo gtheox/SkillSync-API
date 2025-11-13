@@ -14,5 +14,7 @@ public class ProjetoUpdateDto
     public decimal? Orcamento { get; set; }
 
     public string? Status { get; set; }
+
+    public List<decimal>? HabilidadesRequisitadas { get; set; }
 }
 

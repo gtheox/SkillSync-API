@@ -233,6 +233,53 @@ public class PerfisController : ControllerBase
 
             await _context.SaveChangesAsync();
 
+            // Atualizar habilidades se fornecidas
+            if (dto.Habilidades != null)
+            {
+                // Deletar habilidades existentes
+                var habilidadesExistentes = await _context.TGsPerfilHabilidades
+                    .Where(ph => ph.IdPerfil == id)
+                    .ToListAsync();
+                
+                if (habilidadesExistentes.Any())
+                {
+                    _context.TGsPerfilHabilidades.RemoveRange(habilidadesExistentes);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Adicionar novas habilidades
+                if (dto.Habilidades.Any())
+                {
+                    // Validar se todas as habilidades existem
+                    var habilidadesValidas = await _context.TGsHabilidades
+                        .Where(h => dto.Habilidades.Contains(h.IdHabilidade))
+                        .Select(h => h.IdHabilidade)
+                        .ToListAsync();
+                    
+                    var habilidadesInvalidas = dto.Habilidades
+                        .Except(habilidadesValidas)
+                        .ToList();
+                    
+                    if (habilidadesInvalidas.Any())
+                    {
+                        _logger.LogWarning("Tentativa de atualizar perfil com habilidades inválidas: {Habilidades}", 
+                            string.Join(", ", habilidadesInvalidas));
+                        return BadRequest(new { 
+                            message = $"Habilidades inválidas: {string.Join(", ", habilidadesInvalidas)}" 
+                        });
+                    }
+                    
+                    // Usar stored procedure para adicionar habilidades
+                    foreach (var habilidadeId in habilidadesValidas)
+                    {
+                        await _context.Database.ExecuteSqlRawAsync(
+                            "BEGIN PKG_GERENCIAMENTO.SP_ADICIONAR_HABILIDADE_PERFIL(:p_idPerfil, :p_idHabilidade); END;",
+                            new Oracle.ManagedDataAccess.Client.OracleParameter("p_idPerfil", id),
+                            new Oracle.ManagedDataAccess.Client.OracleParameter("p_idHabilidade", habilidadeId));
+                    }
+                }
+            }
+
             var perfilCompleto = await _context.TGsPerfisFreelancers
                 .Where(p => p.IdPerfil == id && p.IdPerfil > 0) // Garantir que o ID é válido
                 .Include(p => p.IdUsuarioNavigation)
