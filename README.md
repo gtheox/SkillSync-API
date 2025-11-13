@@ -5,6 +5,7 @@ API RESTful desenvolvida em .NET 8 para a plataforma SkillSync, focada em matchm
 ## 📋 Índice
 
 - [Visão Geral](#-visão-geral)
+- [Desenvolvedores](#-desenvolvedores)
 - [Arquitetura](#-arquitetura)
 - [Requisitos](#-requisitos)
 - [Configuração](#-configuração)
@@ -25,6 +26,14 @@ A SkillSync API é o núcleo do ecossistema SkillSync, uma plataforma de matchma
 - **Health Checks** para monitoramento
 - **Logging estruturado** com Serilog
 - **Swagger/OpenAPI** para documentação interativa
+
+## 👨‍💻 Desenvolvedores
+
+| Nome                           | RM     | GitHub                                          |
+| ------------------------------ | ------ | ----------------------------------------------- |
+| Gabriel Teodoro Gonçalves Rosa | 555962 | [gtheox](https://github.com/gtheox)             |
+| Luka Shibuya                   | 558123 | [lukashibuya](https://github.com/lukashibuya)   |
+| Eduardo Giovannini             | 555030 | [DuGiovannini](https://github.com/DuGiovannini) |
 
 ## 🏗️ Arquitetura
 
