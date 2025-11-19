@@ -379,6 +379,12 @@ CORS está configurado para permitir todas as origens em desenvolvimento. Para p
 - O Swagger está disponível apenas em desenvolvimento por padrão
 - Cada usuário pode ter apenas um perfil (constraint `UK_GS_PERFIS_USUARIO`)
 
+## 🎥 Vídeo de Apresentação
+
+📹 **[Assista ao vídeo de demonstração](https://youtu.be/dEnd7_YGAWI)**
+
+[![Assista ao vídeo](https://img.youtube.com/vi/dEnd7_YGAWI/0.jpg)](https://youtu.be/dEnd7_YGAWI)
+
 ## 🔗 Links
 
 - [Repositório GitHub](https://github.com/gtheox/SkillSync-API)
